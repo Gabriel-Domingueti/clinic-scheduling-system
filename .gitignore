@@ -1,0 +1,27 @@
+# Ambientes Virtuais (Isolamento de dependências)
+.venv/
+venv/
+ENV/
+
+# Configurações sensíveis (SEGURANÇA!)
+.env
+
+# Python (Arquivos temporários e compilados)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Banco de Dados Local (Caso você use SQLite em algum momento para testes)
+db.sqlite3
+db.sqlite3-journal
+
+# Mídia e Estáticos (Arquivos que os usuários sobem para o site)
+media/
+static/
+
+# Configurações de IDEs (VS Code, PyCharm)
+.vscode/
+.idea/
+
+# Logs do Sistema
+*.log
