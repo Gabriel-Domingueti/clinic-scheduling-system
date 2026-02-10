@@ -8,4 +8,5 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='appointments/login.html'), name ='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('schedule/', views.schedule_appointment, name='schedule_appointment'),
+    path('cancel/<int:appointment_id>/', views.cancel_appointment, name='cancel_appointment'),
 ]

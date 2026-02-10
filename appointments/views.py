@@ -1,10 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .forms import PatientRegistrationForm, AppointmentForm
 from .models import Patient, Appointment
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from datetime import timedelta
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 def register(request):
     if request.method == 'POST':
@@ -29,10 +30,10 @@ def register(request):
 @login_required
 def home(request):
     patient_profile = request.user.patient
-    my_appointments = Appointment.objects.filter(patient=patient_profile).order_by('date_time')
+    appointments = Appointment.objects.filter(patient=patient_profile).order_by('date_time')
 
     return render(request, 'appointments/home.html',{
-        'appointments': my_appointments
+        'appointments': appointments
     })
 
 @login_required
@@ -43,37 +44,30 @@ def schedule_appointment(request):
             appointment = form.save(commit=False)
             appointment.patient = request.user.patient # Vincula ao paciente logado
 
-            # Verifica se a data escolhida é menor que a data/hora atual
-            if appointment.date_time < timezone.now():
-                messages.error(request, "Você não pode agendar uma consulta em uma data ou horário que já passou.")
-                return render(request, "appointments/schedule.html", {"form": form})
-
-            duration = appointment.procedure.duration_minutes
-            start_time = appointment.date_time
-            end_time = start_time + timedelta(minutes=duration)
-
-            # Procuramos por qualquer consulta que aconteça no mesmo dia
-            potencial_conflicts = Appointment.objects.filter(
-                date_time__date=start_time.date()
-            )
-
-            conflict_found = False
-            for existing_appt in potencial_conflicts:
-                # Calcula quando a consulta que já está no banco termina
-                existing_start = existing_appt.date_time
-                existing_end = existing_start + timedelta(minutes=existing_appt.procedure.duration_minutes)
-
-                # Lógica de Interseção:
-                if start_time < existing_end and end_time > existing_start:
-                    conflict_found = True
-                    break
-
-            if conflict_found:
-                messages.error(request, "Desculpe, este horário já está reservado.")
-            else:
+            try:
                 appointment.save()
-                messages.success(request, "Agendamento realizado com sucesso!")
+                messages.success(request, "Consulta agendada com sucesso!")
                 return redirect('home')
+            except ValidationError as e:
+                for error in e.messages:
+                    form.add_error(None, error)
+
     else:
         form = AppointmentForm()
+
     return render(request, 'appointments/schedule.html', {'form': form})
+
+@login_required
+def cancel_appointment(request, appointment_id):
+    # Garante que só o paciente cancele os próprios agendamentos
+    appointment = get_object_or_404(Appointment, id=appointment_id, patient__user=request.user)
+
+    if request.method == 'POST':
+        try:
+            appointment.cancel()
+            messages.success(request, "Agendamento cancelado.")
+        except ValidationError as e:
+            for error in e.messages:
+                messages.error(request, error)
+
+    return redirect('home')
