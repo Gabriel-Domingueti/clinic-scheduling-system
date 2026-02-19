@@ -1,0 +1,21 @@
+<h1>Catálogo de Procedimentos</h1>
+
+<table border="1" cellpadding="10">
+  <tr>
+    <th>Procedimento</th>
+    <th>Descrição</th>
+    <th>Preço</th>
+    <th>Ação</th>
+  </tr>
+
+  {% for p in procedures %}
+  <tr>
+    <td>{{ p.name }}</td>
+    <td>{{ p.description }}</td>
+    <td>R$ {{ p.price }}</td>
+    <td>
+      <a href="{% url 'schedule' p.id %}">Agendar</a>
+    </td>
+  </tr>
+  {% endfor %}
+</table>

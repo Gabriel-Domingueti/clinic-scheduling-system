@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import PatientRegistrationForm, AppointmentForm
-from .models import Patient, Appointment
+from .models import Patient, Appointment, Procedure
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from datetime import timedelta
-from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.utils import timezone
+from datetime import datetime
 
 def register(request):
     if request.method == 'POST':
@@ -71,3 +71,39 @@ def cancel_appointment(request, appointment_id):
                 messages.error(request, error)
 
     return redirect('home')
+
+@login_required
+def catalog(request):
+    procedures = Procedure.objects.all()
+    return render(request, "catalog.html", {"procedures": procedures})
+    
+@login_required
+def appointment_history(request):
+    patient = request.user.patient
+    appointments = Appointment.objects.filter(
+        patient=patient,
+        status__in=["DONE", "NO_SHOW"]
+    ).order_by("-date_time")
+
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+
+    if start_date:
+        try:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+            appointments = appointments.filter(date_time__date__gte=start_date)
+        except ValueError:
+            start_date = None
+
+    if end_date:
+        try:
+            end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+            appointments = appointments.filter(date_time__date__lte=end_date)
+        except ValueError:
+            end_date = None
+    
+    return render(request, "appointment/history.html", {
+        "appointments": appointments,
+        "start_date": start_date,
+        "end_date": end_date
+    })
