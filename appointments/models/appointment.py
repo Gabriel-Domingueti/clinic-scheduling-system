@@ -1,97 +1,10 @@
 from django.db import models
-from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import timedelta
-from datetime import time
-import re
-
-# Validador de CPF
-def validate_cpf(value):
-    cpf = re.sub(r'[^0-9]', '', value)
-
-    if len(cpf) != 11:
-        raise ValidationError("O CPF deve conter 11 números.")
-    
-    if cpf == cpf[0] * 11:
-        raise ValidationError("CPF inválido.")
-    
-    sum1 = sum(int(cpf[i]) * (10 - i) for i in range(9))
-    digit1 = (sum1 * 10) % 11
-    if digit1 == 10:
-        digit1 = 0
-
-    sum2 = sum(int(cpf[i]) * (11 - i) for i in range(10))
-    digit2 = (sum2 * 10) % 11
-    if digit2 == 10:
-        digit2 = 0
-
-    if digit1 != int(cpf[9]) or digit2 != int(cpf[10]):
-        raise ValidationError("CPF inválido.")
-
-class Patient(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    phone = models.CharField(max_length=20)
-    cpf = models.CharField(
-        max_length=14, 
-        unique=True, 
-        validators=[validate_cpf]
-        )
-    birth_date = models.DateField(null=True, blank=True)
-
-    def appointment_history(self):
-        return self.appointments.filter(
-            date_time__lt=timezone.now(),
-            status__in=["DONE", "NO_SHOW"]
-        ).order_by('date_time')
-
-    def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name}"
-    
-    def clean(self):
-        self.cpf = re.sub(r'[^0-9]', '', self.cpf)
-    
-class Procedure(models.Model):
-    name = models.CharField(max_length=100, verbose_name="Nome do Procedimento")
-    description = models.TextField()
-    price = models.DecimalField(max_digits=8, decimal_places=2)
-    duration_minutes = models.IntegerField()
-
-    class Meta:
-        verbose_name = "Procedimento"
-        verbose_name_plural = "Procedimentos"
-
-    def __str__(self):
-        return self.name
-
-class WorkingDay(models.Model):
-    WEEKDAY_CHOICES = [
-        (0, "Segunda"),
-        (1, "Terça"),
-        (2, "Quarta"),
-        (3, "Quinta"),
-        (4, "Sexta"),
-        (5, "Sábado"),
-        (6, "Domingo"),
-    ]
-
-    weekday = models.IntegerField(choices=WEEKDAY_CHOICES, unique=True)
-    opening_time = models.TimeField()
-    closing_time = models.TimeField()
-    is_open = models.BooleanField(default=True)
-
-    def __str__(self):
-        return dict(self.WEEKDAY_CHOICES)[self.weekday]
-    
-# Feriado
-class SpecialDay(models.Model):
-    date = models.DateField(unique=True)
-    opening_time = models.TimeField(null=True, blank=True)
-    closing_time = models.TimeField(null=True, blank=True)
-    is_open = models.BooleanField(default=False)
-
-    def __str__(self):
-        return str(self.date)
+from .patient import Patient
+from .procedure import Procedure
+from .schedule import WorkingDay, SpecialDay
 
 class Appointment(models.Model):
     STATUS_CHOICES = [

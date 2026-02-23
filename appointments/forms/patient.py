@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Patient, Appointment
+from ..models import Patient
 
 class PatientRegistrationForm(forms.ModelForm):
     phone = forms.CharField(
@@ -25,20 +25,4 @@ class PatientRegistrationForm(forms.ModelForm):
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Seu sobrenome'}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'exemplo@email.com'}),
             'password': forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Crie uma senha forte'}),
-        }
-
-class AppointmentForm(forms.ModelForm):
-    class Meta:
-        model = Appointment
-        fields = ["procedure", "date_time"]
-        labels = {
-            "procedure": "Procedimento Desejado",
-            "date_time": "Dia e Hora da Consulta",
-        }
-        help_text = {
-            "date_time": "Formato: DD/MM/AAAA HH:MM",
-        }
-        widgets = {
-            # Isso cria um calendário com seletor de hora no navegador
-            "date_time": forms.DateTimeInput(attrs={"type": "datetime-local"}),
         }

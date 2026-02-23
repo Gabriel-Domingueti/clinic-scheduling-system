@@ -1,31 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import PatientRegistrationForm, AppointmentForm
-from .models import Patient, Appointment, Procedure
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 from datetime import datetime
-
-def register(request):
-    if request.method == 'POST':
-        form = PatientRegistrationForm(request.POST)
-        if form.is_valid():
-            # Salva o usuário
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data["password"])
-            user.save()
-
-            # Cria o perfil de Paciente vinculado a esse usuário
-            Patient.objects.create(
-                user=user,
-                phone=form.cleaned_data["phone"],
-                cpf=form.cleaned_data["cpf"]
-            )
-            return redirect("login")
-    else:
-        form = PatientRegistrationForm()
-    return render(request, 'appointments/register.html', {'form': form})
+from ..forms import AppointmentForm
+from ..models import Appointment
 
 @login_required
 def home(request):
@@ -72,11 +51,6 @@ def cancel_appointment(request, appointment_id):
 
     return redirect('home')
 
-@login_required
-def catalog(request):
-    procedures = Procedure.objects.all()
-    return render(request, "catalog.html", {"procedures": procedures})
-    
 @login_required
 def appointment_history(request):
     patient = request.user.patient

@@ -32,7 +32,7 @@ class AppointmentAdmin(admin.ModelAdmin):
     search_fields = ("patient__user__username",)
     ordering = ("-date_time",)
 
-    actions = ["mark_done", "mark_no_show"]
+    actions = ["mark_done", "mark_no_show", "mark_canceled"]
 
     def has_change_permission(self, request, obj =None):
         if obj:
