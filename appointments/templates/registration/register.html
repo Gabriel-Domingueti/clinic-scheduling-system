@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Criar Conta{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="schedule-card mx-auto">
+
+            <h2 class="text-center mb-4 fw-semibold">
+                Criar nova conta
+            </h2>
+
+            <form method="post">
+                {% csrf_token %}
+                {{ form|crispy }}
+
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-primary-custom btn-lg">
+                        Criar conta
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center mt-4">
+                <small class="text-muted">Já possui conta?</small><br>
+                <a href="{% url 'appointments:login' %}" class="fw-semibold text-decoration-none" style="color: var(--primary);">
+                    Entrar
+                </a>
+            </div>
+
+        </div>
+    </div>
+</section>
+{% endblock %}

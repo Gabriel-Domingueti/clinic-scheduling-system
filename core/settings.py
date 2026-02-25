@@ -43,7 +43,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'appointments',
+    "crispy_forms",
+    "crispy_bootstrap5",
+    'django_extensions',
 ]
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -127,6 +133,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'home'
-LOGOUT_REDIRECT_URL = 'login'
+LOGIN_URL = 'appointments:login'
+LOGIN_REDIRECT_URL = 'appointments:home'
+LOGOUT_REDIRECT_URL = 'appointments:home'

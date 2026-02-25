@@ -1,26 +1,49 @@
-{% extends 'appointments/base.html' %}
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
 
 {% block content %}
-<div class="card shadow p-4 mx-auto" style="max-width: 600px;">
-    <h2 class="text-center mb-4">Novo Agendamento</h2>
+<section class="py-5">
+    <div class="container">
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
+        <div class="schedule-card mx-auto">
 
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            {{ form.as_p }}
+            <h2 class="text-center mb-4 fw-semibold">
+                Novo Agendamento
+            </h2>
+
+            <form method="post">
+                {% csrf_token %}
+
+                {{ form|crispy }}
+
+                {% if slots %}
+                    <hr>
+                    <h5 class="text-center mb-3">
+                        Horários disponíveis
+                    </h5>
+
+                    <div class="d-flex flex-wrap gap-2 justify-content-center">
+                        {% for slot in slots %}
+                            <button 
+                                type="submit"
+                                name="time"
+                                value="{{ slot }}"
+                                class="btn btn-outline-custom">
+                                {{ slot }}
+                            </button>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <br><br>
+                    <button type="submit" class="btn btn-primary-custom w-100">
+                        Ver horários disponíveis
+                    </button>
+                {% endif %}
+
+            </form>
+
         </div>
-        <div class="d-grid gap-2">
-            <button type="submit" class="btn btn-primary">Confirmar Agendamento</button>
-            <a href="{% url 'home' %}" class="btn btn-outline-secondary">Voltar</a>
-        </div>
-    </form>
-</div>
+
+    </div>
+</section>
 {% endblock %}

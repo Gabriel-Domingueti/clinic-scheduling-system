@@ -47,4 +47,4 @@ class Patient(models.Model):
         return f"{self.user.first_name} {self.user.last_name}"
     
     def clean(self):
-        self.cpf = re.sub(r'[^0-9]', '', self.cpf)
+        self.cpf = re.sub(r'[^0-9]', '', self.cpf) 

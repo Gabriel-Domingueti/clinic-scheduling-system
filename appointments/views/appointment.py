@@ -2,9 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from datetime import datetime
+from django.utils import timezone
+from datetime import datetime, timedelta
 from ..forms import AppointmentForm
-from ..models import Appointment
+from ..models import Appointment, WorkingDay, SpecialDay
 
 @login_required
 def home(request):
@@ -15,26 +16,103 @@ def home(request):
         'appointments': appointments
     })
 
+def generate_available_slots(date, procedure):
+    slots = []
+
+    # verifica se tem dia especial
+    special = SpecialDay.objects.filter(date=date).first()
+
+    if special:
+        if not special.is_open:
+            return []  # Clínica fechada nesse dia
+        opening = special.opening_time
+        closing = special.closing_time
+    else:
+        weekday = date.weekday()
+        working_day = WorkingDay.objects.filter(
+            weekday=weekday,
+            is_open=True
+        ).first()
+
+        if not working_day:
+            return []  # Clínica fechada nesse dia
+        
+        opening = working_day.opening_time
+        closing = working_day.closing_time
+
+    current = timezone.make_aware(datetime.combine(date, opening))
+    end = timezone.make_aware(datetime.combine(date, closing))
+
+    duration = timedelta(minutes=procedure.duration_minutes)
+
+    # Buscar todos agendamentos do dia uma vez
+    appointments = Appointment.objects.filter(
+        date_time__date = date,
+        status="SCHEDULED"
+    ).select_related("procedure")
+
+    while current + duration <= end:
+        has_conflict = False
+
+        for existing in appointments:
+            existing_start = existing.date_time
+            existing_end = existing_start + timedelta(
+                minutes=existing.procedure.duration_minutes
+            )
+
+            if current < existing_end and (current + duration) > existing_start:
+                has_conflict = True
+                break
+
+        if not has_conflict and current >= timezone.now():
+            slots.append(current.time())
+
+        current += timedelta(minutes=30)
+
+    return slots
+
 @login_required
 def schedule_appointment(request):
+    slots = None
+
     if request.method == "POST":
         form = AppointmentForm(request.POST)
-        if form.is_valid():
-            appointment = form.save(commit=False)
-            appointment.patient = request.user.patient # Vincula ao paciente logado
 
-            try:
-                appointment.save()
-                messages.success(request, "Consulta agendada com sucesso!")
-                return redirect('home')
-            except ValidationError as e:
-                for error in e.messages:
-                    form.add_error(None, error)
+        if form.is_valid():
+            procedure = form.cleaned_data["procedure"]
+            date = form.cleaned_data["date"]
+            time = form.cleaned_data["time"]
+
+            # Já escolheu o horário
+            if time:
+                date_time = datetime.combine(date, time)
+                date_time = timezone.make_aware(date_time)
+
+                appointment = Appointment(
+                    patient = request.user.patient,
+                    procedure = procedure,
+                    date_time = date_time
+                )
+
+                try:
+                    appointment.save()
+                    messages.success(request, "Consulta agendada com sucesso!")
+                    return redirect('appointments:home')
+                except ValidationError as e:
+                    for error in e.messages:
+                        form.add_error(None, error)
+            
+            # Gerar horário
+            else:
+                slots = generate_available_slots(date, procedure)
 
     else:
         form = AppointmentForm()
 
-    return render(request, 'appointments/schedule.html', {'form': form})
+    return render(request, 'appointments/schedule.html', {
+            'form': form,
+            'slots': slots
+        })
 
 @login_required
 def cancel_appointment(request, appointment_id):

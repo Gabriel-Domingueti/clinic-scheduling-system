@@ -1,58 +1,87 @@
-{% extends 'appointments/base.html' %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Início | Dra. Bianca C. Toledo{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-primary">Meus Agendamentos</h2>
-        <a href="{% url 'schedule_appointment' %}" class="btn btn-success shadow-sm">+ Novo Agendamento</a>
-    </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="px-4 py-3">Procedimento</th>
-                            <th class="py-3">Data e Hora</th>
-                            <th class="py-3 text-center">Status</th>
-                            <th class="py-3 text-end px-4">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for appt in appointments %}
-                        <tr class="align-middle">
-                            <td class="px-4 fw-semibold">{{ appt.procedure.name }}</td>
-                            <td>{{ appt.date_time|date:"d/m/Y H:i" }}</td>
-                            <td class="text-center">
-                                {% if appt.status == 'SCHEDULED' %}
-                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Agendado</span>
-                                {% else %}
-                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Cancelado</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-end px-4">
-                                {% if appt.status == 'SCHEDULED' %}
-                                <form action="{% url 'cancel_appointment' appt.id %}" method="post" style="display:inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Tem certeza que deseja cancelar?')">
-                                        Cancelar
-                                    </button>
-                                </form>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="text-center py-5 text-muted">
-                                Você ainda não possui agendamentos.
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+<!-- HERO -->
+<section class="hero-section text-center py-5">
+    <div class="container">
+        <h1 class="display-5 fw-semibold mb-3">
+            Harmonia, naturalidade e excelência
+        </h1>
+        <p class="lead text-muted mb-4">
+            Odontologia e estética orofacial com atendimento humanizado e foco na sua autoestima.
+        </p>
+
+        {% if user.is_authenticated %}
+            <a href="{% url 'appointments:schedule_appointment' %}" class="btn btn-primary-custom btn-lg">
+                Agendar Consulta
+            </a>
+        {% else %}
+            <a href="{% url 'appointments:login' %}" class="btn btn-primary-custom btn-lg">
+                Agendar Consulta
+            </a>
+        {% endif %}
+    </div>
+</section>
+
+<!-- PROCEDIMENTOS -->
+<section class="py-5 bg-white">
+    <div class="container text-center">
+        <h2 class="mb-5 fw-semibold">Procedimentos</h2>
+
+        <div class="row g-4">
+
+            <div class="col-md-4">
+                <div class="card card-custom h-100 p-4">
+                    <h5 class="fw-semibold">Clareamento Dental</h5>
+                    <p class="text-muted">
+                        Sorriso mais branco e saudável com segurança e naturalidade.
+                    </p>
+                </div>
             </div>
+
+            <div class="col-md-4">
+                <div class="card card-custom h-100 p-4">
+                    <h5 class="fw-semibold">Harmonização Orofacial</h5>
+                    <p class="text-muted">
+                        Equilíbrio facial com técnicas modernas e resultados sutis.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card card-custom h-100 p-4">
+                    <h5 class="fw-semibold">Profilaxia</h5>
+                    <p class="text-muted">
+                        Prevenção e cuidado para manter sua saúde bucal em dia.
+                    </p>
+                </div>
+            </div>
+
         </div>
     </div>
-</div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="py-5 text-center">
+    <div class="container">
+        <h3 class="mb-4 fw-semibold">
+            Pronto para cuidar do seu sorriso?
+        </h3>
+
+        {% if user.is_authenticated %}
+            <a href="{% url 'appointments:schedule_appointment' %}" class="btn btn-primary-custom btn-lg">
+                Agendar agora
+            </a>
+        {% else %}
+            <a href="{% url 'appointments:register' %}" class="btn btn-primary-custom btn-lg">
+                Criar conta e agendar
+            </a>
+        {% endif %}
+    </div>
+</section>
+
 {% endblock %}

@@ -1,21 +1,38 @@
-<h1>Catálogo de Procedimentos</h1>
+{% extends "base.html" %}
+{% block content %}
 
-<table border="1" cellpadding="10">
-  <tr>
-    <th>Procedimento</th>
-    <th>Descrição</th>
-    <th>Preço</th>
-    <th>Ação</th>
-  </tr>
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Procedimentos Disponíveis</h2>
 
-  {% for p in procedures %}
-  <tr>
-    <td>{{ p.name }}</td>
-    <td>{{ p.description }}</td>
-    <td>R$ {{ p.price }}</td>
-    <td>
-      <a href="{% url 'schedule' p.id %}">Agendar</a>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
+    <div class="row">
+        {% for procedure in procedures %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ procedure.name }}</h5>
+                        <p class="card-text">{{ procedure.description }}</p>
+
+                        <p>
+                            <strong>Duração:</strong>
+                            {{ procedure.duration_minutes }} min
+                        </p>
+
+                        <p>
+                            <strong>Valor:</strong>
+                            R$ {{ procedure.price }}
+                        </p>
+
+                        <a href="{% url 'appointments:schedule_appointment' %}?procedure={{ procedure.id }}"
+                           class="btn btn-primary mt-auto">
+                            Agendar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>Nenhum procedimento disponível.</p>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

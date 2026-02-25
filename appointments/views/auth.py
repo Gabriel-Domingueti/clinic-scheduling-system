@@ -1,25 +1,44 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from ..forms import PatientRegistrationForm
+from ..forms.patient import PatientRegistrationForm
+from ..forms.auth import EmailAuthenticationForm
 from ..models import Patient
 
 def register(request):
     if request.method == 'POST':
         form = PatientRegistrationForm(request.POST)
         if form.is_valid():
-            # Salva o usuário
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data["password"])
-            user.save()
-
-            # Cria o perfil de Paciente vinculado a esse usuário
-            Patient.objects.create(
-                user=user,
-                phone=form.cleaned_data["phone"],
-                cpf=form.cleaned_data["cpf"]
+            user = form.save()
+            user = authenticate(
+                request,
+                username=user.email,
+                password=form.cleaned_data["password1"]
             )
-            return redirect("login")
+
+            if user is not None:
+                login(request, user)
+                return redirect("appointments:home")
     else:
         form = PatientRegistrationForm()
-    return render(request, 'appointments/register.html', {'form': form})
+
+    return render(request, 'registration/register.html', {'form': form})
+
+def login_view(request):
+    if request.method == "POST":
+        form = EmailAuthenticationForm(request.POST)
+
+        if form.is_valid():
+            login(request, form.get_user())
+            return redirect("appointments:home")
+    else:
+        form = EmailAuthenticationForm()
+
+    return render(request, "registration/login.html", {"form": form})
+
+@login_required
+def logout_view(request):
+    if request.method == "POST":
+        logout(request)
+        return redirect("login")
+    return redirect("appointments:home")

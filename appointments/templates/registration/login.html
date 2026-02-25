@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Entrar | Dra. Bianca{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+
+        <div class="schedule-card mx-auto">
+
+            <h2 class="text-center mb-4 fw-semibold">
+                Entrar na sua conta
+            </h2>
+
+            {% if form.errors %}
+                <div class="alert alert-danger text-center">
+                    Usuário ou senha inválidos.
+                </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                {{ form|crispy }}
+
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-primary-custom btn-lg">
+                        Entrar
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center mt-4">
+                <small class="text-muted">
+                    Ainda não possui conta?
+                </small>
+                <br>
+                <a href="{% url 'appointments:register' %}" class="text-decoration-none fw-semibold" style="color: var(--primary);">
+                    Criar conta
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+{% endblock %}
